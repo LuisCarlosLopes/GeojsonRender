@@ -15,24 +15,24 @@ namespace GeoJsonRenderer.ConsoleApp
             try
             {
                 Console.WriteLine("== GeoJSON Renderer ==");
-                Console.WriteLine("Iniciando...");
+                Console.WriteLine("Starting...");
 
                 // Verificar argumentos
                 if (args.Length == 0)
                 {
-                    Console.WriteLine("Uso: GeoJsonRenderer.ConsoleApp <caminho-arquivo-configuracao>");
-                    Console.WriteLine("Exemplo: GeoJsonRenderer.ConsoleApp config.json");
+                    Console.WriteLine("Usage: GeoJsonRenderer.ConsoleApp <configuration-file-path>");
+                    Console.WriteLine("Example: GeoJsonRenderer.ConsoleApp config.json");
                     return 1;
                 }
 
                 string configPath = args[0];
                 if (!File.Exists(configPath))
                 {
-                    Console.WriteLine($"Erro: O arquivo de configuração '{configPath}' não foi encontrado.");
+                    Console.WriteLine($"Error: The configuration file '{configPath}' was not found.");
                     return 1;
                 }
 
-                Console.WriteLine($"Utilizando arquivo de configuração: {configPath}");
+                Console.WriteLine($"Using configuration file: {configPath}");
 
                 // Configurar DI
                 var services = ConfigureServices();
@@ -40,13 +40,13 @@ namespace GeoJsonRenderer.ConsoleApp
 
                 // Executar o processo
                 var processingResult = await ExecuteProcessingAsync(serviceProvider, configPath);
-                Console.WriteLine($"Processamento concluído. Imagem gerada em: {processingResult}");
+                Console.WriteLine($"Processing completed. Image generated at: {processingResult}");
 
                 return 0;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro: {ex.Message}");
+                Console.WriteLine($"Error: {ex.Message}");
                 Console.WriteLine(ex.StackTrace);
                 return 1;
             }
@@ -72,14 +72,14 @@ namespace GeoJsonRenderer.ConsoleApp
             var configParser = serviceProvider.GetRequiredService<GeoJsonConfigParser>();
 
             // Carregar configurações
-            Console.WriteLine("Carregando configurações...");
+            Console.WriteLine("Loading configurations...");
             var (filter, styleConfig, renderOptions) = await configParser.LoadConfigAsync(configPath);
 
             // Validar configurações
-            Console.WriteLine("Validando configurações...");
+            Console.WriteLine("Validating configurations...");
             if (string.IsNullOrEmpty(renderOptions.InputFilePath))
             {
-                throw new InvalidOperationException("O caminho do arquivo GeoJSON de entrada não foi especificado na configuração.");
+                throw new InvalidOperationException("The input GeoJSON file path was not specified in the configuration.");
             }
 
             if (string.IsNullOrEmpty(renderOptions.OutputFilePath))
@@ -87,11 +87,11 @@ namespace GeoJsonRenderer.ConsoleApp
                 renderOptions.OutputFilePath = Path.Combine(
                     Path.GetDirectoryName(renderOptions.InputFilePath),
                     Path.GetFileNameWithoutExtension(renderOptions.InputFilePath) + ".jpg");
-                Console.WriteLine($"Caminho de saída não especificado. Utilizando: {renderOptions.OutputFilePath}");
+                Console.WriteLine($"Output path not specified. Using: {renderOptions.OutputFilePath}");
             }
 
             // Processar GeoJSON e renderizar mapa
-            Console.WriteLine($"Processando arquivo GeoJSON: {renderOptions.InputFilePath}");
+            Console.WriteLine($"Processing GeoJSON file: {renderOptions.InputFilePath}");
             var geoJsonService = serviceProvider.GetRequiredService<GeoJsonService>();
             string outputPath = await geoJsonService.ProcessAndRenderAsync(renderOptions, filter, styleConfig);
 

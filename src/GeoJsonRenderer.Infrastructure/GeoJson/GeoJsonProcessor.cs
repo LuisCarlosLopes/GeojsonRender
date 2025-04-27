@@ -27,12 +27,12 @@ namespace GeoJsonRenderer.Infrastructure.GeoJson
         {
             if (string.IsNullOrEmpty(filePath))
             {
-                throw new ArgumentException("O caminho do arquivo GeoJSON não pode ser nulo ou vazio.", nameof(filePath));
+                throw new ArgumentException("The GeoJSON file path cannot be null or empty.", nameof(filePath));
             }
 
             if (!File.Exists(filePath))
             {
-                throw new FileNotFoundException("O arquivo GeoJSON não foi encontrado.", filePath);
+                throw new FileNotFoundException("The GeoJSON file was not found.", filePath);
             }
 
             string geojsonContent;
@@ -103,7 +103,7 @@ namespace GeoJsonRenderer.Infrastructure.GeoJson
         {
             if (features == null || features.Count == 0)
             {
-                throw new ArgumentException("A lista de feições não pode ser nula ou vazia.", nameof(features));
+                throw new ArgumentException("The feature list cannot be null or empty.", nameof(features));
             }
 
             // Obtém apenas as feições filtradas
@@ -113,12 +113,12 @@ namespace GeoJsonRenderer.Infrastructure.GeoJson
             // Isso garante que o mapa será centralizado nas feições de interesse
             if (filteredFeatures.Count == 0)
             {
-                Console.WriteLine("Nenhuma feição filtrada encontrada. Usando todas as feições para o cálculo do bounding box.");
+                Console.WriteLine("No filtered features found. Using all features for bounding box calculation.");
                 filteredFeatures = features;
             }
             else
             {
-                Console.WriteLine($"Usando {filteredFeatures.Count} feições filtradas para o cálculo do bounding box.");
+                Console.WriteLine($"Using {filteredFeatures.Count} filtered features for bounding box calculation.");
             }
 
             var boundingBox = new BoundingBox();
@@ -142,15 +142,13 @@ namespace GeoJsonRenderer.Infrastructure.GeoJson
             // Verifica se o bounding box é válido
             if (!boundingBox.IsValid())
             {
-                Console.WriteLine("AVISO: Bounding box calculado não é válido. Usando bounding box global.");
+                Console.WriteLine("WARNING: Calculated bounding box is not valid. Using global bounding box.");
                 // Caso o bounding box não seja válido, cria um padrão centrado em (0, 0)
                 return new BoundingBox(-180, -90, 180, 90);
             }
 
             // Log detalhado do bounding box
-            Console.WriteLine($"BoundingBox calculado para feições {(filteredFeatures == features ? "TODAS" : "FILTRADAS")}:");
-            Console.WriteLine($"MinX={boundingBox.MinX:F6}, MinY={boundingBox.MinY:F6}, MaxX={boundingBox.MaxX:F6}, MaxY={boundingBox.MaxY:F6}");
-            Console.WriteLine($"Width={boundingBox.Width:F6}, Height={boundingBox.Height:F6}");
+            Console.WriteLine($"BoundingBox calculated for features {(filteredFeatures == features ? "ALL" : "FILTERED")}:\nMinX={boundingBox.MinX:F6}, MinY={boundingBox.MinY:F6}, MaxX={boundingBox.MaxX:F6}, MaxY={boundingBox.MaxY:F6}\nWidth={boundingBox.Width:F6}, Height={boundingBox.Height:F6}");
 
             return boundingBox;
         }
@@ -275,4 +273,4 @@ namespace GeoJsonRenderer.Infrastructure.GeoJson
             return geoFeatures;
         }
     }
-} 
+}

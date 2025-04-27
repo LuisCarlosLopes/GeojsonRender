@@ -526,7 +526,7 @@ namespace GeoJsonRenderer.Infrastructure.Rendering
 
             if (boundingBox == null || !boundingBox.IsValid())
             {
-                throw new ArgumentException("O bounding box não pode ser nulo ou inválido.", nameof(boundingBox));
+                throw new ArgumentException("The bounding box cannot be null or invalid.", nameof(boundingBox));
             }
 
             if (styleConfig == null)
@@ -541,8 +541,8 @@ namespace GeoJsonRenderer.Infrastructure.Rendering
 
             if (string.IsNullOrEmpty(options.OutputFilePath))
             {
-                throw new ArgumentException("O caminho do arquivo de saída é obrigatório.", nameof(options.OutputFilePath));
+                throw new ArgumentException("The output file path is required.", nameof(options.OutputFilePath));
             }
         }
     }
-} 
+}

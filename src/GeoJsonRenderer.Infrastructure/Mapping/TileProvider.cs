@@ -28,9 +28,9 @@ namespace GeoJsonRenderer.Infrastructure.Mapping
         /// <summary>
         /// Construtor padrão
         /// </summary>
-        /// <param name="tileServerUrl">URL do servidor de tiles</param>
         /// <param name="logger">Logger para depuração</param>
-        public TileProvider(string tileServerUrl = null, ILogger<TileProvider> logger = null)
+        /// <param name="tileServerUrl">URL do servidor de tiles</param>
+        public TileProvider(ILogger<TileProvider> logger, string tileServerUrl = null)
         {
             _tileServerUrl = string.IsNullOrEmpty(tileServerUrl)
                 ? "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -38,7 +38,7 @@ namespace GeoJsonRenderer.Infrastructure.Mapping
 
             _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.Add("User-Agent", "GeoJsonRenderer/1.0");
-            _logger = logger;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
@@ -53,19 +53,19 @@ namespace GeoJsonRenderer.Infrastructure.Mapping
             // Validação de parâmetros
             if (zoom < _minZoom || zoom > _maxZoom)
             {
-                throw new ArgumentOutOfRangeException(nameof(zoom), $"O nível de zoom deve estar entre {_minZoom} e {_maxZoom}");
+                throw new ArgumentOutOfRangeException(nameof(zoom), $"The zoom level must be between {_minZoom} and {_maxZoom}");
             }
 
             int maxIndex = (1 << zoom) - 1; // Número máximo de tiles para este nível de zoom
 
             if (x < 0 || x > maxIndex)
             {
-                throw new ArgumentOutOfRangeException(nameof(x), $"O índice X deve estar entre 0 e {maxIndex}");
+                throw new ArgumentOutOfRangeException(nameof(x), $"The X index must be between 0 and {maxIndex}");
             }
 
             if (y < 0 || y > maxIndex)
             {
-                throw new ArgumentOutOfRangeException(nameof(y), $"O índice Y deve estar entre 0 e {maxIndex}");
+                throw new ArgumentOutOfRangeException(nameof(y), $"The Y index must be between 0 and {maxIndex}");
             }
 
             // Constrói a URL do tile substituindo os marcadores {z}, {x} e {y}
@@ -116,10 +116,6 @@ namespace GeoJsonRenderer.Infrastructure.Mapping
             {
                 _logger.LogDebug($"BoundingBox max dimension: {maxDim}");
             }
-            else
-            {
-                Console.WriteLine($"BoundingBox max dimension: {maxDim}");
-            }
 
             // Estratégia progressiva para áreas pequenas
             // Para áreas extremamente pequenas, aplicamos zoom máximo
@@ -129,11 +125,7 @@ namespace GeoJsonRenderer.Infrastructure.Mapping
                 // Áreas extremamente pequenas (< 0.01°) recebem zoom máximo
                 if (_logger != null)
                 {
-                    _logger.LogDebug($"Área extremamente pequena (maxDim={maxDim:F6}), usando zoom máximo de {maxAllowedZoom}");
-                }
-                else
-                {
-                    Console.WriteLine($"Área extremamente pequena (maxDim={maxDim:F6}), usando zoom máximo de {maxAllowedZoom}");
+                    _logger.LogDebug($"Extremely small area (maxDim={maxDim:F6}), using maximum zoom of {maxAllowedZoom}");
                 }
                 return maxAllowedZoom;
             }
@@ -142,11 +134,7 @@ namespace GeoJsonRenderer.Infrastructure.Mapping
                 // Áreas muito pequenas (0.01° - 0.05°) recebem zoom 17
                 if (_logger != null)
                 {
-                    _logger.LogDebug($"Área muito pequena (maxDim={maxDim:F6}), usando zoom 17");
-                }
-                else
-                {
-                    Console.WriteLine($"Área muito pequena (maxDim={maxDim:F6}), usando zoom 17");
+                    _logger.LogDebug($"Very small area (maxDim={maxDim:F6}), using zoom 17");
                 }
                 return 17;
             }
@@ -155,11 +143,7 @@ namespace GeoJsonRenderer.Infrastructure.Mapping
                 // Áreas pequenas (0.05° - 0.2°) recebem zoom 16
                 if (_logger != null)
                 {
-                    _logger.LogDebug($"Área pequena (maxDim={maxDim:F6}), usando zoom 16");
-                }
-                else
-                {
-                    Console.WriteLine($"Área pequena (maxDim={maxDim:F6}), usando zoom 16");
+                    _logger.LogDebug($"Small area (maxDim={maxDim:F6}), using zoom 16");
                 }
                 return 16;
             }
@@ -183,10 +167,6 @@ namespace GeoJsonRenderer.Infrastructure.Mapping
             if (_logger != null)
             {
                 _logger.LogDebug($"Adjusted BoundingBox: West={west}, South={south}, East={east}, North={north}");
-            }
-            else
-            {
-                Console.WriteLine($"Adjusted BoundingBox: West={west}, South={south}, East={east}, North={north}");
             }
 
             for (int zoom = maxAllowedZoom; zoom >= 0; zoom--)
@@ -212,10 +192,6 @@ namespace GeoJsonRenderer.Infrastructure.Mapping
                 {
                     _logger.LogDebug($"Zoom: {zoom}, Score: {score}, PixelWidth: {pixelWidth}, PixelHeight: {pixelHeight}");
                 }
-                else
-                {
-                    Console.WriteLine($"Zoom: {zoom}, Score: {score}, PixelWidth: {pixelWidth}, PixelHeight: {pixelHeight}");
-                }
 
                 // Se a razão for menor que 0.5, a imagem ocupará menos da metade da tela
                 // Nesse caso, queremos aumentar o zoom
@@ -225,10 +201,6 @@ namespace GeoJsonRenderer.Infrastructure.Mapping
                     {
                         _logger.LogDebug($"Selected zoom level: {zoom}");
                     }
-                    else
-                    {
-                        Console.WriteLine($"Selected zoom level: {zoom}");
-                    }
                     return zoom;
                 }
             }
@@ -237,10 +209,6 @@ namespace GeoJsonRenderer.Infrastructure.Mapping
             if (_logger != null)
             {
                 _logger.LogDebug("No suitable zoom level found, defaulting to 10");
-            }
-            else
-            {
-                Console.WriteLine("No suitable zoom level found, defaulting to 10");
             }
             return 10;
         }
@@ -345,4 +313,4 @@ namespace GeoJsonRenderer.Infrastructure.Mapping
             _httpClient?.Dispose();
         }
     }
-} 
+}
