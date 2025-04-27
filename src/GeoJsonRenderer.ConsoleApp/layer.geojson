@@ -1,0 +1,65 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "id": "0",
+      "type": "Feature",
+      "properties": {
+        "Bloco": "FAKE0001",
+        "Bloco_Desc": "Fake Fazenda 1",
+        "Cod_Fazend": 9999,
+        "Gleba": "FAKE",
+        "Gleba_Abre": "FAKE",
+        "Gleba_Desc": "Fake Description",
+        "KEY": "FAKE0001.1",
+        "Layer": 9999001.0,
+        "Talhao": 1,
+        "Unidade_Pr": 9999,
+        "__label_r__": 0.0,
+        "id": "fake-id-0001"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-50.000000, -22.000000, 0.0],
+            [-50.000100, -22.000100, 0.0],
+            [-50.000200, -22.000200, 0.0],
+            [-50.000300, -22.000300, 0.0],
+            [-50.000000, -22.000000, 0.0]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "1",
+      "type": "Feature",
+      "properties": {
+        "Bloco": "FAKE0002",
+        "Bloco_Desc": "Fake Fazenda 2",
+        "Cod_Fazend": 8888,
+        "Gleba": "FAKE",
+        "Gleba_Abre": "FAKE",
+        "Gleba_Desc": "Another Fake Description",
+        "KEY": "FAKE0002.1",
+        "Layer": 8888001.0,
+        "Talhao": 2,
+        "Unidade_Pr": 8888,
+        "__label_r__": 1.0,
+        "id": "fake-id-0002"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-51.000000, -23.000000, 0.0],
+            [-51.000100, -23.000100, 0.0],
+            [-51.000200, -23.000200, 0.0],
+            [-51.000300, -23.000300, 0.0],
+            [-51.000000, -23.000000, 0.0]
+          ]
+        ]
+      }
+    }
+  ]
+}

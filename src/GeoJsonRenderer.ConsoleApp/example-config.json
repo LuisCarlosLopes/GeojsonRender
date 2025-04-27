@@ -1,0 +1,42 @@
+{
+  "inputFilePath": "./src/GeoJsonRenderer.ConsoleApp/layer.geojson",
+  "outputFilePath": "./src/GeoJsonRenderer.ConsoleApp//mapa_filtrado.jpg",
+  
+  "filters": [
+    {"property": "GEO_KEY", "value": "110P1140"},
+    {"property": "tipo", "value": "zona rural"}
+  ],
+  
+  "highlightStyle": {
+    "fillColor": "#FF0000",
+    "strokeColor": "#000000",
+    "strokeWidth": 2
+  },
+  
+  "defaultStyle": {
+    "strokeColor": "#CCCCCC",
+    "strokeWidth": 1
+  },
+  
+  "labelProperty": "nome_local",
+  
+  "labelConfig": {
+    "enabled": true,
+    "fontSize": 12,
+    "fontColor": "#000000",
+    "halo": true,
+    "haloColor": "#FFFFFF",
+    "haloWidth": 2
+  },
+  
+  "renderOptions": {
+    "width": 1920,
+    "height": 1080,
+    "format": "jpeg",
+    "quality": 90,
+    "autoCenter": true,
+    "bufferPercentage": 0.1,
+    "showMapBackground": true,
+    "tileServerUrl": "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+  }
+} 
