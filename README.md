@@ -39,8 +39,7 @@ GeoJsonRenderer/
 │   ├── GeoJsonRenderer.Infrastructure/# Implementações externas
 │   ├── GeoJsonRenderer.Mapping/       # Serviços de mapeamento
 │   └── GeoJsonRenderer.ConsoleApp/    # Interface de linha de comando
-├── tests/                             # Testes automatizados
-└── sample-data/                       # Dados de exemplo
+└── tests/                             # Testes automatizados
 ```
 
 ## 💻 Como Usar
