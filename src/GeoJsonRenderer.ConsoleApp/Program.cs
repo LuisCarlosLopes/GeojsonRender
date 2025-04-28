@@ -52,19 +52,24 @@ namespace GeoJsonRenderer.ConsoleApp
             }
         }
 
+
         private static ServiceCollection ConfigureServices()
         {
             var services = new ServiceCollection();
-
+        
+            // Adiciona logging (necessário para ILogger<T>)
+            services.AddLogging();
+        
             // Adiciona serviços da infraestrutura
             services.AddGeoJsonRendererInfrastructure();
-
+        
             // Adiciona serviços da aplicação
             services.AddScoped<GeoJsonService>();
             services.AddTransient<GeoJsonConfigParser>();
-
+        
             return services;
         }
+        // ...existing code...
 
         private static async Task<string> ExecuteProcessingAsync(ServiceProvider serviceProvider, string configPath)
         {
