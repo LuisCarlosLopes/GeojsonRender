@@ -18,9 +18,9 @@ namespace GeoJsonRenderer.Domain.Interfaces
         /// <param name="options">Opções de renderização</param>
         /// <returns>Caminho do arquivo de imagem gerado</returns>
         Task<string> RenderMapAsync(
-            List<GeoFeature> features, 
-            BoundingBox boundingBox, 
-            StyleConfig styleConfig, 
+            List<GeoFeature> features,
+            BoundingBox boundingBox,
+            StyleConfig styleConfig,
             RenderOptions options);
     }
-} 
+}

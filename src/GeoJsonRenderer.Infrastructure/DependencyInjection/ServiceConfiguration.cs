@@ -33,4 +33,4 @@ namespace GeoJsonRenderer.Infrastructure.DependencyInjection
             return services;
         }
     }
-} 
+}

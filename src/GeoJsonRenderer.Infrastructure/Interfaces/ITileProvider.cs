@@ -43,11 +43,11 @@ namespace GeoJsonRenderer.Infrastructure.Interfaces
         /// <param name="boundingBox">Bounding box sendo visualizado</param>
         /// <returns>Coordenadas X e Y em pixels</returns>
         (double X, double Y) GeoToPixel(
-            double longitude, 
-            double latitude, 
-            int zoom, 
-            int width, 
-            int height, 
+            double longitude,
+            double latitude,
+            int zoom,
+            int width,
+            int height,
             BoundingBox boundingBox);
     }
-} 
+}

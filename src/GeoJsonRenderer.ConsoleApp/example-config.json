@@ -35,7 +35,7 @@
     "format": "jpeg",
     "quality": 90,
     "autoCenter": true,
-    "bufferPercentage": 0.1,
+    "bufferPercentage": 0.25,
     "showMapBackground": true,
     "tileServerUrl": "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
   }

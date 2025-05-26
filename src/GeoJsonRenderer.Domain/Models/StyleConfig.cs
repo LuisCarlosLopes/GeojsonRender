@@ -49,19 +49,19 @@ namespace GeoJsonRenderer.Domain.Models
     public class FeatureStyle
     {
         /// <summary>
-        /// Cor de preenchimento no formato hexadecimal (#RRGGBB ou #RRGGBBAA)
+        /// Cor de preenchimento (formato: #RRGGBB ou #RRGGBBAA)
         /// </summary>
-        public string FillColor { get; set; }
+        public string FillColor { get; set; } = "#0000FF80"; // Azul semi-transparente
 
         /// <summary>
-        /// Cor da borda no formato hexadecimal (#RRGGBB ou #RRGGBBAA)
+        /// Cor do contorno (formato: #RRGGBB ou #RRGGBBAA)
         /// </summary>
-        public string StrokeColor { get; set; }
+        public string StrokeColor { get; set; } = "#000000"; // Preto
 
         /// <summary>
-        /// Largura da borda em pixels
+        /// Largura do contorno em pixels
         /// </summary>
-        public float StrokeWidth { get; set; }
+        public float StrokeWidth { get; set; } = 1.0f;
 
         /// <summary>
         /// Converte a string hexadecimal para um objeto Color
@@ -84,7 +84,7 @@ namespace GeoJsonRenderer.Domain.Models
                 }
 
                 int a = 255, r, g, b;
-                
+
                 // Formatos suportados: RGB, ARGB, RRGGBB, RRGGBBAA, AARRGGBB
                 switch (hexColor.Length)
                 {
@@ -145,38 +145,38 @@ namespace GeoJsonRenderer.Domain.Models
     public class LabelConfig
     {
         /// <summary>
-        /// Indica se os rótulos devem ser renderizados
+        /// Indica se os rótulos devem ser exibidos
         /// </summary>
-        public bool Enabled { get; set; }
+        public bool Enabled { get; set; } = false;
 
         /// <summary>
         /// Nome da propriedade a ser usada como rótulo
         /// </summary>
-        public string PropertyName { get; set; }
+        public string PropertyName { get; set; } = "name";
 
         /// <summary>
         /// Tamanho da fonte em pixels
         /// </summary>
-        public int FontSize { get; set; }
+        public float FontSize { get; set; } = 12.0f;
 
         /// <summary>
-        /// Cor da fonte no formato hexadecimal (#RRGGBB ou #RRGGBBAA)
+        /// Cor da fonte (formato: #RRGGBB ou #RRGGBBAA)
         /// </summary>
-        public string FontColor { get; set; }
+        public string FontColor { get; set; } = "#000000"; // Preto
+
+        /// <summary>
+        /// Largura do halo ao redor do texto
+        /// </summary>
+        public float HaloWidth { get; set; } = 1.0f;
 
         /// <summary>
         /// Indica se deve ser desenhado um halo (contorno) ao redor do texto
         /// </summary>
-        public bool Halo { get; set; }
+        public bool Halo { get; set; } = false;
 
         /// <summary>
-        /// Cor do halo no formato hexadecimal (#RRGGBB ou #RRGGBBAA)
+        /// Cor do halo (formato: #RRGGBB ou #RRGGBBAA)
         /// </summary>
-        public string HaloColor { get; set; }
-
-        /// <summary>
-        /// Largura do halo em pixels
-        /// </summary>
-        public float HaloWidth { get; set; }
+        public string HaloColor { get; set; } = "#FFFFFF"; // Branco
     }
-} 
+}

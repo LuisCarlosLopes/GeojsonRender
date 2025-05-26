@@ -14,12 +14,12 @@ namespace GeoJsonRenderer.Tests
         {
             // Arrange & Act
             var filter = new GeoFilter();
-            
+
             // Assert
             Assert.That(filter.Conditions, Is.Not.Null);
             Assert.That(filter.Conditions.Count, Is.EqualTo(0));
         }
-        
+
         [Test]
         public void Match_NoFilters_ReturnsTrue()
         {
@@ -34,10 +34,10 @@ namespace GeoJsonRenderer.Tests
                     { "name", "test" }
                 }
             };
-            
+
             // Act
             bool result = filter.Match(feature);
-            
+
             // Assert
             Assert.That(result, Is.True);
         }
@@ -57,10 +57,10 @@ namespace GeoJsonRenderer.Tests
                     { "name", "test" }
                 }
             };
-            
+
             // Act
             bool result = filter.Match(feature);
-            
+
             // Assert
             Assert.That(result, Is.True);
         }
@@ -80,10 +80,10 @@ namespace GeoJsonRenderer.Tests
                     { "name", "test" }
                 }
             };
-            
+
             // Act
             bool result = filter.Match(feature);
-            
+
             // Assert
             Assert.That(result, Is.False);
         }
@@ -105,10 +105,10 @@ namespace GeoJsonRenderer.Tests
                     { "type", "point" }
                 }
             };
-            
+
             // Act
             bool result = filter.Match(feature);
-            
+
             // Assert
             Assert.That(result, Is.True);
         }
@@ -130,12 +130,12 @@ namespace GeoJsonRenderer.Tests
                     { "type", "point" }
                 }
             };
-            
+
             // Act
             bool result = filter.Match(feature);
-            
+
             // Assert
             Assert.That(result, Is.False);
         }
     }
-} 
+}

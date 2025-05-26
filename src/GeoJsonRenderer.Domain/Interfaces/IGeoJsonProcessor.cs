@@ -31,4 +31,4 @@ namespace GeoJsonRenderer.Domain.Interfaces
         /// <returns>Bounding box das feições filtradas</returns>
         BoundingBox CalculateBoundingBox(List<GeoFeature> features);
     }
-} 
+}

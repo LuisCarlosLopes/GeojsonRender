@@ -33,8 +33,8 @@ namespace GeoJsonRenderer.Application.Services
         /// <param name="styleConfig">Configuração de estilos</param>
         /// <returns>Caminho do arquivo de imagem gerado</returns>
         public async Task<string> ProcessAndRenderAsync(
-            RenderOptions options, 
-            GeoFilter filter, 
+            RenderOptions options,
+            GeoFilter filter,
             StyleConfig styleConfig)
         {
             ValidateInputs(options, filter, styleConfig);
@@ -56,9 +56,9 @@ namespace GeoJsonRenderer.Application.Services
 
             // Renderiza o mapa e salva a imagem
             var outputPath = await _mapRenderer.RenderMapAsync(
-                features, 
-                boundingBox, 
-                styleConfig, 
+                features,
+                boundingBox,
+                styleConfig,
                 options);
 
             return outputPath;
@@ -95,4 +95,4 @@ namespace GeoJsonRenderer.Application.Services
             }
         }
     }
-} 
+}

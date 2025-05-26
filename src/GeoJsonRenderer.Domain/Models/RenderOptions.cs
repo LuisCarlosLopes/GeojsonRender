@@ -43,12 +43,12 @@ namespace GeoJsonRenderer.Domain.Models
         /// <summary>
         /// Caminho do arquivo GeoJSON de entrada
         /// </summary>
-        public string InputFilePath { get; set; }
+        public string InputFilePath { get; set; } = string.Empty;
 
         /// <summary>
         /// Caminho do arquivo de saída da imagem
         /// </summary>
-        public string OutputFilePath { get; set; }
+        public string OutputFilePath { get; set; } = string.Empty;
 
         /// <summary>
         /// Indica se deve mostrar o fundo do mapa (tiles)
@@ -76,4 +76,4 @@ namespace GeoJsonRenderer.Domain.Models
         /// </summary>
         Png
     }
-} 
+}

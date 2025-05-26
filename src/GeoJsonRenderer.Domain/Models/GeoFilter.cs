@@ -3,6 +3,18 @@ using System.Collections.Generic;
 namespace GeoJsonRenderer.Domain.Models
 {
     /// <summary>
+    /// Tipos de operadores de filtro
+    /// </summary>
+    public enum FilterOperator
+    {
+        Equals,
+        NotEquals,
+        Contains,
+        StartsWith,
+        EndsWith
+    }
+
+    /// <summary>
     /// Representa um filtro para seleção de feições geográficas
     /// </summary>
     public class GeoFilter
@@ -10,7 +22,7 @@ namespace GeoJsonRenderer.Domain.Models
         /// <summary>
         /// Lista de condições que devem ser satisfeitas (operação AND)
         /// </summary>
-        public List<FilterCondition> Conditions { get; set; } = new List<FilterCondition>();
+        public List<FilterCondition> Conditions { get; set; } = new();
 
         /// <summary>
         /// Verifica se uma feição satisfaz o filtro
@@ -19,15 +31,13 @@ namespace GeoJsonRenderer.Domain.Models
         /// <returns>True se a feição satisfaz todas as condições do filtro, False caso contrário</returns>
         public bool Match(GeoFeature feature)
         {
-            // Se não há condições, todas as feições são consideradas
-            if (Conditions == null || Conditions.Count == 0)
-            {
-                return true;
-            }
+            if (feature?.Properties == null)
+                return false;
 
-            // AND semantics: todas as condições devem ser satisfeitas
             foreach (var condition in Conditions)
             {
+                var propertyValue = feature.GetPropertyAsString(condition.Property);
+
                 if (!condition.Match(feature))
                 {
                     return false;
@@ -39,42 +49,57 @@ namespace GeoJsonRenderer.Domain.Models
     }
 
     /// <summary>
-    /// Representa uma condição de filtro baseada em uma propriedade
+    /// Representa uma condição de filtro para feições geográficas
     /// </summary>
     public class FilterCondition
     {
         /// <summary>
-        /// Nome da propriedade a ser verificada
+        /// Nome da propriedade a ser filtrada
         /// </summary>
-        public string Property { get; set; }
+        public string Property { get; set; } = string.Empty;
 
         /// <summary>
         /// Valor esperado para a propriedade
         /// </summary>
-        public object Value { get; set; }
+        public string Value { get; set; } = string.Empty;
 
         /// <summary>
-        /// Verifica se uma feição satisfaz a condição
+        /// Tipo de operação de comparação
+        /// </summary>
+        public FilterOperator Operator { get; set; } = FilterOperator.Equals;
+
+        /// <summary>
+        /// Verifica se uma feição atende a esta condição específica
         /// </summary>
         /// <param name="feature">Feição a ser verificada</param>
-        /// <returns>True se a feição satisfaz a condição, False caso contrário</returns>
+        /// <returns>True se a feição atende à condição</returns>
         public bool Match(GeoFeature feature)
         {
-            if (string.IsNullOrEmpty(Property) || feature == null)
-            {
-                return false;
-            }
+            var propertyValue = feature.GetPropertyAsString(Property);
+            return EvaluateCondition(propertyValue, Value, Operator);
+        }
 
-            var propertyValue = feature.GetPropertyValue(Property);
-            
+        /// <summary>
+        /// Avalia uma condição específica
+        /// </summary>
+        /// <param name="propertyValue">Valor da propriedade</param>
+        /// <param name="expectedValue">Valor esperado</param>
+        /// <param name="operator">Operador de comparação</param>
+        /// <returns>True se a condição é atendida</returns>
+        private static bool EvaluateCondition(string? propertyValue, string expectedValue, FilterOperator @operator)
+        {
             if (propertyValue == null)
-            {
                 return false;
-            }
 
-            // Comparação simples baseada em strings
-            return propertyValue.ToString().Equals(Value?.ToString(), 
-                System.StringComparison.OrdinalIgnoreCase);
+            return @operator switch
+            {
+                FilterOperator.Equals => string.Equals(propertyValue, expectedValue, System.StringComparison.OrdinalIgnoreCase),
+                FilterOperator.NotEquals => !string.Equals(propertyValue, expectedValue, System.StringComparison.OrdinalIgnoreCase),
+                FilterOperator.Contains => propertyValue.Contains(expectedValue, System.StringComparison.OrdinalIgnoreCase),
+                FilterOperator.StartsWith => propertyValue.StartsWith(expectedValue, System.StringComparison.OrdinalIgnoreCase),
+                FilterOperator.EndsWith => propertyValue.EndsWith(expectedValue, System.StringComparison.OrdinalIgnoreCase),
+                _ => false
+            };
         }
     }
-} 
+}

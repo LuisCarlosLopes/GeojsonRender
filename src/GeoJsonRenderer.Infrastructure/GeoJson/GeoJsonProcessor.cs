@@ -47,7 +47,7 @@ namespace GeoJsonRenderer.Infrastructure.GeoJson
 
             // Configurando o leitor de GeoJSON
             var serializer = GeoJsonSerializer.Create();
-            
+
             // Lendo a coleção de feições
             using (var stringReader = new StringReader(geojsonContent))
             using (var jsonReader = new JsonTextReader(stringReader))
@@ -108,7 +108,7 @@ namespace GeoJsonRenderer.Infrastructure.GeoJson
 
             // Obtém apenas as feições filtradas
             var filteredFeatures = features.Where(f => f.IsFiltered).ToList();
-            
+
             // IMPORTANTE: Só usamos todas as feições se não houver nenhuma filtrada
             // Isso garante que o mapa será centralizado nas feições de interesse
             if (filteredFeatures.Count == 0)
@@ -158,15 +158,15 @@ namespace GeoJsonRenderer.Infrastructure.GeoJson
         /// </summary>
         private void ExtractBoundingBoxFromJsonGeometry(System.Text.Json.JsonElement jsonElement, BoundingBox boundingBox)
         {
-            if (jsonElement.TryGetProperty("type", out var typeElement) && 
+            if (jsonElement.TryGetProperty("type", out var typeElement) &&
                 typeElement.ValueKind == System.Text.Json.JsonValueKind.String)
             {
-                string geometryType = typeElement.GetString();
+                string? geometryType = typeElement.GetString();
 
                 switch (geometryType)
                 {
                     case "Point":
-                        if (jsonElement.TryGetProperty("coordinates", out var pointCoords) && 
+                        if (jsonElement.TryGetProperty("coordinates", out var pointCoords) &&
                             pointCoords.ValueKind == System.Text.Json.JsonValueKind.Array)
                         {
                             double x = pointCoords[0].GetDouble();
@@ -177,7 +177,7 @@ namespace GeoJsonRenderer.Infrastructure.GeoJson
 
                     case "LineString":
                     case "MultiPoint":
-                        if (jsonElement.TryGetProperty("coordinates", out var lineCoords) && 
+                        if (jsonElement.TryGetProperty("coordinates", out var lineCoords) &&
                             lineCoords.ValueKind == System.Text.Json.JsonValueKind.Array)
                         {
                             foreach (var point in lineCoords.EnumerateArray())
@@ -191,7 +191,7 @@ namespace GeoJsonRenderer.Infrastructure.GeoJson
 
                     case "Polygon":
                     case "MultiLineString":
-                        if (jsonElement.TryGetProperty("coordinates", out var polyCoords) && 
+                        if (jsonElement.TryGetProperty("coordinates", out var polyCoords) &&
                             polyCoords.ValueKind == System.Text.Json.JsonValueKind.Array)
                         {
                             foreach (var ring in polyCoords.EnumerateArray())
@@ -207,7 +207,7 @@ namespace GeoJsonRenderer.Infrastructure.GeoJson
                         break;
 
                     case "MultiPolygon":
-                        if (jsonElement.TryGetProperty("coordinates", out var multiPolyCoords) && 
+                        if (jsonElement.TryGetProperty("coordinates", out var multiPolyCoords) &&
                             multiPolyCoords.ValueKind == System.Text.Json.JsonValueKind.Array)
                         {
                             foreach (var polygon in multiPolyCoords.EnumerateArray())
@@ -226,7 +226,7 @@ namespace GeoJsonRenderer.Infrastructure.GeoJson
                         break;
 
                     case "GeometryCollection":
-                        if (jsonElement.TryGetProperty("geometries", out var geometries) && 
+                        if (jsonElement.TryGetProperty("geometries", out var geometries) &&
                             geometries.ValueKind == System.Text.Json.JsonValueKind.Array)
                         {
                             foreach (var geometry in geometries.EnumerateArray())

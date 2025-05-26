@@ -70,14 +70,15 @@ namespace GeoJsonRenderer.Application.Configuration
                     {
                         var condition = new FilterCondition
                         {
-                            Property = propertyElement.GetString(),
-                            Value = valueElement.ValueKind == JsonValueKind.String
-                                ? valueElement.GetString()
-                                : valueElement.ValueKind == JsonValueKind.Number
-                                    ? valueElement.GetDouble()
-                                    : valueElement.ValueKind == JsonValueKind.True || valueElement.ValueKind == JsonValueKind.False
-                                        ? valueElement.GetBoolean()
-                                        : null
+                            Property = propertyElement.GetString() ?? string.Empty,
+                            Value = valueElement.ValueKind switch
+                            {
+                                JsonValueKind.String => valueElement.GetString() ?? string.Empty,
+                                JsonValueKind.Number => valueElement.GetDouble().ToString(),
+                                JsonValueKind.True => "true",
+                                JsonValueKind.False => "false",
+                                _ => string.Empty
+                            }
                         };
 
                         filter.Conditions.Add(condition);
@@ -113,10 +114,10 @@ namespace GeoJsonRenderer.Application.Configuration
             }
 
             // Configuração de label
-            if (root.TryGetProperty("labelProperty", out var labelPropertyElement) && 
+            if (root.TryGetProperty("labelProperty", out var labelPropertyElement) &&
                 labelPropertyElement.ValueKind == JsonValueKind.String)
             {
-                styleConfig.LabelConfig.PropertyName = labelPropertyElement.GetString();
+                styleConfig.LabelConfig.PropertyName = labelPropertyElement.GetString() ?? "name";
                 styleConfig.LabelConfig.Enabled = true;
             }
 
@@ -135,19 +136,19 @@ namespace GeoJsonRenderer.Application.Configuration
         {
             var style = new FeatureStyle();
 
-            if (element.TryGetProperty("fillColor", out var fillColorElement) && 
+            if (element.TryGetProperty("fillColor", out var fillColorElement) &&
                 fillColorElement.ValueKind == JsonValueKind.String)
             {
-                style.FillColor = fillColorElement.GetString();
+                style.FillColor = fillColorElement.GetString() ?? style.FillColor;
             }
 
-            if (element.TryGetProperty("strokeColor", out var strokeColorElement) && 
+            if (element.TryGetProperty("strokeColor", out var strokeColorElement) &&
                 strokeColorElement.ValueKind == JsonValueKind.String)
             {
-                style.StrokeColor = strokeColorElement.GetString();
+                style.StrokeColor = strokeColorElement.GetString() ?? style.StrokeColor;
             }
 
-            if (element.TryGetProperty("strokeWidth", out var strokeWidthElement) && 
+            if (element.TryGetProperty("strokeWidth", out var strokeWidthElement) &&
                 strokeWidthElement.ValueKind == JsonValueKind.Number)
             {
                 style.StrokeWidth = (float)strokeWidthElement.GetDouble();
@@ -161,38 +162,38 @@ namespace GeoJsonRenderer.Application.Configuration
         /// </summary>
         private void ParseLabelConfig(JsonElement element, LabelConfig labelConfig)
         {
-            if (element.TryGetProperty("enabled", out var enabledElement) && 
+            if (element.TryGetProperty("enabled", out var enabledElement) &&
                 enabledElement.ValueKind == JsonValueKind.False)
             {
                 labelConfig.Enabled = false;
                 return;
             }
 
-            if (element.TryGetProperty("fontSize", out var fontSizeElement) && 
+            if (element.TryGetProperty("fontSize", out var fontSizeElement) &&
                 fontSizeElement.ValueKind == JsonValueKind.Number)
             {
                 labelConfig.FontSize = fontSizeElement.GetInt32();
             }
 
-            if (element.TryGetProperty("fontColor", out var fontColorElement) && 
+            if (element.TryGetProperty("fontColor", out var fontColorElement) &&
                 fontColorElement.ValueKind == JsonValueKind.String)
             {
-                labelConfig.FontColor = fontColorElement.GetString();
+                labelConfig.FontColor = fontColorElement.GetString() ?? labelConfig.FontColor;
             }
 
-            if (element.TryGetProperty("halo", out var haloElement) && 
-                haloElement.ValueKind == JsonValueKind.True || haloElement.ValueKind == JsonValueKind.False)
+            if (element.TryGetProperty("halo", out var haloElement) &&
+                (haloElement.ValueKind == JsonValueKind.True || haloElement.ValueKind == JsonValueKind.False))
             {
                 labelConfig.Halo = haloElement.GetBoolean();
             }
 
-            if (element.TryGetProperty("haloColor", out var haloColorElement) && 
+            if (element.TryGetProperty("haloColor", out var haloColorElement) &&
                 haloColorElement.ValueKind == JsonValueKind.String)
             {
-                labelConfig.HaloColor = haloColorElement.GetString();
+                labelConfig.HaloColor = haloColorElement.GetString() ?? labelConfig.HaloColor;
             }
 
-            if (element.TryGetProperty("haloWidth", out var haloWidthElement) && 
+            if (element.TryGetProperty("haloWidth", out var haloWidthElement) &&
                 haloWidthElement.ValueKind == JsonValueKind.Number)
             {
                 labelConfig.HaloWidth = (float)haloWidthElement.GetDouble();
@@ -208,26 +209,26 @@ namespace GeoJsonRenderer.Application.Configuration
 
             if (root.TryGetProperty("renderOptions", out var renderOptionsElement))
             {
-                if (renderOptionsElement.TryGetProperty("width", out var widthElement) && 
+                if (renderOptionsElement.TryGetProperty("width", out var widthElement) &&
                     widthElement.ValueKind == JsonValueKind.Number)
                 {
                     options.Width = widthElement.GetInt32();
                 }
 
-                if (renderOptionsElement.TryGetProperty("height", out var heightElement) && 
+                if (renderOptionsElement.TryGetProperty("height", out var heightElement) &&
                     heightElement.ValueKind == JsonValueKind.Number)
                 {
                     options.Height = heightElement.GetInt32();
                 }
 
-                if (renderOptionsElement.TryGetProperty("format", out var formatElement) && 
+                if (renderOptionsElement.TryGetProperty("format", out var formatElement) &&
                     formatElement.ValueKind == JsonValueKind.String)
                 {
                     var formatString = formatElement.GetString().ToLowerInvariant();
                     options.Format = formatString == "png" ? ImageFormat.Png : ImageFormat.Jpeg;
                 }
 
-                if (renderOptionsElement.TryGetProperty("quality", out var qualityElement) && 
+                if (renderOptionsElement.TryGetProperty("quality", out var qualityElement) &&
                     qualityElement.ValueKind == JsonValueKind.Number)
                 {
                     // Implementação do método Math.Clamp
@@ -235,50 +236,50 @@ namespace GeoJsonRenderer.Application.Configuration
                     options.Quality = quality < 0 ? 0 : (quality > 100 ? 100 : quality);
                 }
 
-                if (renderOptionsElement.TryGetProperty("zoomLevel", out var zoomLevelElement) && 
+                if (renderOptionsElement.TryGetProperty("zoomLevel", out var zoomLevelElement) &&
                     zoomLevelElement.ValueKind == JsonValueKind.Number)
                 {
                     options.ZoomLevel = zoomLevelElement.GetInt32();
                 }
 
-                if (renderOptionsElement.TryGetProperty("autoCenter", out var autoCenterElement) && 
+                if (renderOptionsElement.TryGetProperty("autoCenter", out var autoCenterElement) &&
                     (autoCenterElement.ValueKind == JsonValueKind.True || autoCenterElement.ValueKind == JsonValueKind.False))
                 {
                     options.AutoCenter = autoCenterElement.GetBoolean();
                 }
 
-                if (renderOptionsElement.TryGetProperty("bufferPercentage", out var bufferElement) && 
+                if (renderOptionsElement.TryGetProperty("bufferPercentage", out var bufferElement) &&
                     bufferElement.ValueKind == JsonValueKind.Number)
                 {
                     options.BufferPercentage = bufferElement.GetDouble();
                 }
 
-                if (renderOptionsElement.TryGetProperty("showMapBackground", out var showMapBgElement) && 
+                if (renderOptionsElement.TryGetProperty("showMapBackground", out var showMapBgElement) &&
                     (showMapBgElement.ValueKind == JsonValueKind.True || showMapBgElement.ValueKind == JsonValueKind.False))
                 {
                     options.ShowMapBackground = showMapBgElement.GetBoolean();
                 }
 
-                if (renderOptionsElement.TryGetProperty("tileServerUrl", out var tileServerElement) && 
+                if (renderOptionsElement.TryGetProperty("tileServerUrl", out var tileServerElement) &&
                     tileServerElement.ValueKind == JsonValueKind.String)
                 {
-                    options.TileServerUrl = tileServerElement.GetString();
+                    options.TileServerUrl = tileServerElement.GetString() ?? options.TileServerUrl;
                 }
             }
 
-            if (root.TryGetProperty("inputFilePath", out var inputFileElement) && 
+            if (root.TryGetProperty("inputFilePath", out var inputFileElement) &&
                 inputFileElement.ValueKind == JsonValueKind.String)
             {
-                options.InputFilePath = inputFileElement.GetString();
+                options.InputFilePath = inputFileElement.GetString() ?? string.Empty;
             }
 
-            if (root.TryGetProperty("outputFilePath", out var outputFileElement) && 
+            if (root.TryGetProperty("outputFilePath", out var outputFileElement) &&
                 outputFileElement.ValueKind == JsonValueKind.String)
             {
-                options.OutputFilePath = outputFileElement.GetString();
+                options.OutputFilePath = outputFileElement.GetString() ?? string.Empty;
             }
 
             return options;
         }
     }
-} 
+}

@@ -35,4 +35,4 @@ namespace GeoJsonRenderer.Infrastructure.Mapping
             return _infrastructureTileProvider.GeoToPixel(longitude, latitude, zoom, width, height, boundingBox);
         }
     }
-} 
+}

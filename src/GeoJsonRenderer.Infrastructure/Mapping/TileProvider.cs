@@ -6,6 +6,7 @@ using GeoJsonRenderer.Infrastructure.Interfaces;
 using GeoJsonRenderer.Domain.Models;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace GeoJsonRenderer.Infrastructure.Mapping
 {
@@ -20,6 +21,11 @@ namespace GeoJsonRenderer.Infrastructure.Mapping
         private readonly int _maxZoom = 19;
         private readonly ILogger<TileProvider> _logger;
 
+        // Semáforo para limitar requisições concorrentes
+        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(4, 4); // Máximo 4 requisições simultâneas
+        private readonly TimeSpan _delayBetweenRequests = TimeSpan.FromMilliseconds(100); // 100ms entre requisições
+        private DateTime _lastRequest = DateTime.MinValue;
+
         /// <summary>
         /// Tamanho do tile em pixels
         /// </summary>
@@ -30,14 +36,15 @@ namespace GeoJsonRenderer.Infrastructure.Mapping
         /// </summary>
         /// <param name="logger">Logger para depuração</param>
         /// <param name="tileServerUrl">URL do servidor de tiles</param>
-        public TileProvider(ILogger<TileProvider> logger, string tileServerUrl = null)
+        public TileProvider(ILogger<TileProvider> logger, string? tileServerUrl = null)
         {
             _tileServerUrl = string.IsNullOrEmpty(tileServerUrl)
                 ? "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
                 : tileServerUrl;
 
             _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", "GeoJsonRenderer/1.0");
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", "GeoJsonRenderer/1.0 (Educational Purpose)");
+            _httpClient.Timeout = TimeSpan.FromSeconds(30); // Timeout mais generoso
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -68,18 +75,69 @@ namespace GeoJsonRenderer.Infrastructure.Mapping
                 throw new ArgumentOutOfRangeException(nameof(y), $"The Y index must be between 0 and {maxIndex}");
             }
 
-            // Constrói a URL do tile substituindo os marcadores {z}, {x} e {y}
-            string url = _tileServerUrl
-                .Replace("{z}", zoom.ToString())
-                .Replace("{x}", x.ToString())
-                .Replace("{y}", y.ToString());
+            // Usa semáforo para limitar concorrência
+            await _semaphore.WaitAsync();
 
-            // Faz a requisição HTTP
-            HttpResponseMessage response = await _httpClient.GetAsync(url);
-            response.EnsureSuccessStatusCode(); // Lança exceção se o status code não for de sucesso
-            
-            // Retorna o stream da resposta
-            return await response.Content.ReadAsStreamAsync();
+            try
+            {
+                // Implementa throttling simples
+                var timeSinceLastRequest = DateTime.Now - _lastRequest;
+                if (timeSinceLastRequest < _delayBetweenRequests)
+                {
+                    var delayNeeded = _delayBetweenRequests - timeSinceLastRequest;
+                    await Task.Delay(delayNeeded);
+                }
+
+                _lastRequest = DateTime.Now;
+
+                // Constrói a URL do tile substituindo os marcadores {z}, {x} e {y}
+                string url = _tileServerUrl
+                    .Replace("{z}", zoom.ToString())
+                    .Replace("{x}", x.ToString())
+                    .Replace("{y}", y.ToString());
+
+                // Implementa retry com exponential backoff
+                int retryCount = 0;
+                const int maxRetries = 3;
+
+                while (retryCount < maxRetries)
+                {
+                    try
+                    {
+                        HttpResponseMessage response = await _httpClient.GetAsync(url);
+
+                        if (response.IsSuccessStatusCode)
+                        {
+                            return await response.Content.ReadAsStreamAsync();
+                        }
+                        else if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+                        {
+                            // Se receber 429, aguarda mais tempo
+                            var retryAfter = response.Headers.RetryAfter?.Delta ?? TimeSpan.FromSeconds(Math.Pow(2, retryCount + 1));
+                            _logger.LogWarning($"Rate limited for tile {x},{y},{zoom}. Waiting {retryAfter.TotalSeconds}s before retry {retryCount + 1}/{maxRetries}");
+                            await Task.Delay(retryAfter);
+                            retryCount++;
+                            continue;
+                        }
+                        else
+                        {
+                            response.EnsureSuccessStatusCode();
+                        }
+                    }
+                    catch (HttpRequestException ex) when (retryCount < maxRetries - 1)
+                    {
+                        _logger.LogWarning($"HTTP error for tile {x},{y},{zoom}: {ex.Message}. Retry {retryCount + 1}/{maxRetries}");
+                        await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, retryCount)));
+                        retryCount++;
+                    }
+                }
+
+                throw new HttpRequestException($"Failed to download tile {x},{y},{zoom} after {maxRetries} attempts");
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
         }
 
         /// <summary>
@@ -150,7 +208,7 @@ namespace GeoJsonRenderer.Infrastructure.Mapping
 
             // Define uma porcentagem de buffer que se ajusta ao tamanho da área
             double bufferPercentage = 0.1; // 10% padrão
-            
+
             // Aplicar um buffer para adicionar contexto à visualização
             boundingBox = boundingBox.Buffer(bufferPercentage);
 
@@ -221,10 +279,7 @@ namespace GeoJsonRenderer.Infrastructure.Mapping
         /// <returns>Coordenada X em pixels</returns>
         private double LongitudeToPixelX(double longitude, int zoom)
         {
-            // Fórmula para converter longitude para coordenada X em pixels no sistema de projeção Web Mercator
-            double worldSize = Math.Pow(2, zoom) * TileSize;
-            double x = (longitude + 180.0) / 360.0 * worldSize;
-            return x;
+            return CoordinateTransform.LongitudeToWorldX(longitude, zoom);
         }
 
         /// <summary>
@@ -235,14 +290,7 @@ namespace GeoJsonRenderer.Infrastructure.Mapping
         /// <returns>Coordenada Y em pixels</returns>
         private double LatitudeToPixelY(double latitude, int zoom)
         {
-            // Garantir que a latitude esteja dentro de limites aceitáveis para evitar distorções
-            latitude = Math.Max(Math.Min(latitude, 85.0511), -85.0511);
-            
-            // Fórmula para converter latitude para coordenada Y em pixels no sistema de projeção Web Mercator
-            double latRad = latitude * Math.PI / 180.0;
-            double worldSize = Math.Pow(2, zoom) * TileSize;
-            double y = (1.0 - Math.Log(Math.Tan(latRad) + 1.0 / Math.Cos(latRad)) / Math.PI) / 2.0 * worldSize;
-            return y;
+            return CoordinateTransform.LatitudeToWorldY(latitude, zoom);
         }
 
         /// <summary>
@@ -256,53 +304,14 @@ namespace GeoJsonRenderer.Infrastructure.Mapping
         /// <param name="boundingBox">Bounding box sendo visualizado</param>
         /// <returns>Coordenadas X e Y em pixels</returns>
         public (double X, double Y) GeoToPixel(
-            double longitude, 
-            double latitude, 
-            int zoom, 
-            int width, 
-            int height, 
+            double longitude,
+            double latitude,
+            int zoom,
+            int width,
+            int height,
             BoundingBox boundingBox)
         {
-            if (boundingBox == null || !boundingBox.IsValid())
-            {
-                throw new ArgumentException("O bounding box não pode ser nulo ou inválido.", nameof(boundingBox));
-            }
-
-            // Garantir que as coordenadas estejam dentro de limites aceitáveis para evitar distorções
-            latitude = Math.Max(Math.Min(latitude, 85.0511), -85.0511);
-
-            // Calcular posição no mundo do OSM
-            double worldSize = Math.Pow(2, zoom) * TileSize;
-            double worldX = (longitude + 180.0) / 360.0 * worldSize;
-            double latRad = latitude * Math.PI / 180.0;
-            double worldY = (1.0 - Math.Log(Math.Tan(latRad) + 1.0 / Math.Cos(latRad)) / Math.PI) / 2.0 * worldSize;
-
-            // Converter bounding box para coordenadas de mundo
-            double bbMinLat = Math.Max(boundingBox.MinY, -85.0511);
-            double bbMaxLat = Math.Min(boundingBox.MaxY, 85.0511);
-            double bbMinLatRad = bbMinLat * Math.PI / 180.0;
-            double bbMaxLatRad = bbMaxLat * Math.PI / 180.0;
-            double bbMinWorldX = (boundingBox.MinX + 180.0) / 360.0 * worldSize;
-            double bbMaxWorldX = (boundingBox.MaxX + 180.0) / 360.0 * worldSize;
-            double bbMinWorldY = (1.0 - Math.Log(Math.Tan(bbMaxLatRad) + 1.0 / Math.Cos(bbMaxLatRad)) / Math.PI) / 2.0 * worldSize;
-            double bbMaxWorldY = (1.0 - Math.Log(Math.Tan(bbMinLatRad) + 1.0 / Math.Cos(bbMinLatRad)) / Math.PI) / 2.0 * worldSize;
-
-            // Calcular escala
-            double bbWorldWidth = bbMaxWorldX - bbMinWorldX;
-            double bbWorldHeight = bbMaxWorldY - bbMinWorldY;
-            double scaleX = width / bbWorldWidth;
-            double scaleY = height / bbWorldHeight;
-            double scale = Math.Min(scaleX, scaleY);
-
-            // Calcular offsets para centralização
-            double offsetX = (width - bbWorldWidth * scale) / 2.0;
-            double offsetY = (height - bbWorldHeight * scale) / 2.0;
-
-            // Calcular coordenadas de pixel com offset
-            double pixelX = (worldX - bbMinWorldX) * scale + offsetX;
-            double pixelY = (worldY - bbMinWorldY) * scale + offsetY;
-
-            return (pixelX, pixelY);
+            return CoordinateTransform.GeoToPixel(longitude, latitude, zoom, width, height, boundingBox);
         }
 
         /// <summary>
@@ -311,6 +320,7 @@ namespace GeoJsonRenderer.Infrastructure.Mapping
         public void Dispose()
         {
             _httpClient?.Dispose();
+            _semaphore?.Dispose();
         }
     }
 }

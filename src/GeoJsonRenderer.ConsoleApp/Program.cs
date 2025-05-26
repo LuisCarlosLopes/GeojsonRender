@@ -5,6 +5,7 @@ using GeoJsonRenderer.Application.Configuration;
 using GeoJsonRenderer.Application.Services;
 using GeoJsonRenderer.Infrastructure.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace GeoJsonRenderer.ConsoleApp
 {
@@ -56,17 +57,21 @@ namespace GeoJsonRenderer.ConsoleApp
         private static ServiceCollection ConfigureServices()
         {
             var services = new ServiceCollection();
-        
-            // Adiciona logging (necessário para ILogger<T>)
-            services.AddLogging();
-        
+
+            // Adiciona logging com nível Debug para ver os logs dos tiles
+            services.AddLogging(builder =>
+            {
+                builder.AddConsole();
+                builder.SetMinimumLevel(LogLevel.Debug);
+            });
+
             // Adiciona serviços da infraestrutura
             services.AddGeoJsonRendererInfrastructure();
-        
+
             // Adiciona serviços da aplicação
             services.AddScoped<GeoJsonService>();
             services.AddTransient<GeoJsonConfigParser>();
-        
+
             return services;
         }
         // ...existing code...

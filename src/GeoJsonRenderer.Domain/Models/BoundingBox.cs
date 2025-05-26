@@ -132,4 +132,4 @@ namespace GeoJsonRenderer.Domain.Models
             );
         }
     }
-} 
+}
